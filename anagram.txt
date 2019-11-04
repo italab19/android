@@ -1,0 +1,199 @@
+activity_main.xml
+
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" >
+ 
+    <TextView
+        android:id="@+id/wordTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:text="Word To Find"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+ 
+    <EditText
+        android:id="@+id/wordEnteredEt"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/wordTv"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:inputType="textCapCharacters" />
+ 
+    <Button
+        android:id="@+id/validate"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/wordEnteredTv"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:text="Validate" />
+ 
+    <Button
+        android:id="@+id/newGame"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/validate"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="25dp"
+        android:text="New Game" />
+ 
+</RelativeLayout>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Anagram.java 
+ 
+ 
+ 
+ package com.ssaurel.anagram;
+
+import java.util.Random;
+
+/**
+ * Created by ssaurel on 05/09/2017.
+ */
+public class Anagram {
+
+    public static final Random RANDOM = new Random();
+    public static final String[] WORDS = {"ACCOUNT", "ADDITION",
+    "AGREEMENT", "ANGRY", "ANIMAL", "BEHAVIOUR", "BETWEEN", "BLACK", "CHEMICAL", "FOOLISH",
+    "FREQUENT", "GOVERNMENT", "GRAIN", "GRASS", "HOSPITAL", "PAYMENT", "POLITICAL",
+    "PROCESS", "SHAME", "SMASH", "SMOOTH", "STATEMENT", "SUBSTANCE", "TEACHING", "TENDENCY",
+    "TOMORROW", "TOUCH", "UMBRELLA", "WEATHER", "YESTERDAY"};
+
+    public static String randomWord() {
+        return WORDS[RANDOM.nextInt(WORDS.length)];
+    }
+
+    public static String shuffleWord(String word) {
+        if (word != null  &&  !"".equals(word)) {
+            char a[] = word.toCharArray();
+
+            for (int i = 0; i < a.length; i++) {
+                int j = RANDOM.nextInt(a.length);
+                char tmp = a[i];
+                a[i] = a[j];
+                a[j] = tmp;
+            }
+
+            return new String(a);
+        }
+
+        return word;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MainActivity.java 
+
+
+
+package com.ssaurel.anagram;
+
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+
+    private TextView wordTv;
+    private EditText wordEnteredTv;
+    private Button validate, newGame;
+    private String wordToFind;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        wordTv = (TextView) findViewById(R.id.wordTv);
+        wordEnteredTv = (EditText) findViewById(R.id.wordEnteredEt);
+        validate = (Button) findViewById(R.id.validate);
+        validate.setOnClickListener(this);
+        newGame = (Button) findViewById(R.id.newGame);
+        newGame.setOnClickListener(this);
+
+        newGame();
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (view == validate) {
+            validate();
+        } else if (view == newGame) {
+            newGame();
+        }
+    }
+
+    private void validate() {
+        String w = wordEnteredTv.getText().toString();
+
+        if (wordToFind.equals(w)) {
+            Toast.makeText(this, "Congratulations ! You found the word " + wordToFind, Toast.LENGTH_SHORT).show();
+            newGame();
+        } else {
+            Toast.makeText(this, "Retry !", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void newGame() {
+        wordToFind = Anagram.randomWord();
+        String wordShuffled = Anagram.shuffleWord(wordToFind);
+        wordTv.setText(wordShuffled);
+        wordEnteredTv.setText("");
+    }
+}

@@ -1,0 +1,807 @@
+Make new class files (.java files) in your application package as below :
+
+MainActivity.java
+Options.java
+Question.java
+QuestionActivity.java
+QuestionActivity1.java
+QuizHelper.java
+ResultActivity.java
+
+
+
+
+
+
+
+MainActivity.java:
+
+
+package h.mygame;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+
+public class MainActivity extends Activity {
+// Splash screen timer
+private static int SPLASH_TIME_OUT = 3000;
+
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.splash);
+
+new Handler().postDelayed(new Runnable() {
+
+/*
+* Showing splash screen with a timer. This will be useful when you
+* want to show case your app logo / company
+*/
+
+@Override
+public void run() {
+Intent i = new Intent(MainActivity.this,Options.class);
+startActivity(i);
+finish();
+}
+}, SPLASH_TIME_OUT);
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QuestionActivity.java:
+
+
+
+package h.mygame;
+
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+/**
+* Created by acer on 06-Apr-16.
+*/
+public class QuestionActivity extends Activity {
+List<Question> quesList;
+int score = 0;
+int qid = 0;
+Question currentQ;
+TextView txtQuestion, times, scored;
+Button button1, button2, button3;
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.activity_main);
+QuizHelper db = new QuizHelper(this); // my question bank class
+quesList = db.getAllQuestions(); // this will fetch all quetonall questions
+currentQ = quesList.get(qid); // the current question
+txtQuestion = (TextView) findViewById(R.id.txtQuestion);
+// the textview in which the question will be displayed
+// the three buttons,
+// the idea is to set the text of three buttons with the options from question bank
+button1 = (Button) findViewById(R.id.button1);
+button2 = (Button) findViewById(R.id.button2);
+button3 = (Button) findViewById(R.id.button3);
+// the textview in which score will be displayed
+scored = (TextView) findViewById(R.id.score);
+// the timer
+times = (TextView) findViewById(R.id.timers);
+// method which will set the things up for our game
+setQuestionView();
+times.setText("00:02:00");
+// A timer of 60 seconds to play for, with an interval of 1 second (1000 milliseconds)
+CounterClass timer = new CounterClass(60000, 1000);
+timer.start();
+// button click listeners
+button1.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+// passing the button text to other method
+// to check whether the anser is correct or not
+// same for all three buttons
+getAnswer(button1.getText().toString());
+}
+});
+button2.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+getAnswer(button2.getText().toString());
+}
+});
+button3.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+getAnswer(button3.getText().toString());
+}
+});
+}
+public void getAnswer(String AnswerString) {
+if (currentQ.getANSWER().equals(AnswerString)) {
+// if conditions matches increase the int (score) by 1
+// and set the text of the score view
+score++;
+scored.setText("Score : " + score);
+} else {
+// if unlucky start activity and finish the game
+Intent intent = new Intent(QuestionActivity.this,
+ResultActivity.class);
+// passing the int value
+Bundle b = new Bundle();
+b.putInt("score", score); // Your score
+intent.putExtras(b); // Put your score to your next
+startActivity(intent);
+finish();
+}
+if (qid < 20) {
+// if questions are not over then do this
+currentQ = quesList.get(qid);
+setQuestionView();
+} else {
+// if over do this
+Intent intent = new Intent(QuestionActivity.this,
+ResultActivity.class);
+Bundle b = new Bundle();
+b.putInt("score", score); // Your score
+intent.putExtras(b); // Put your score to your next
+startActivity(intent);
+finish();
+}
+}
+@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+@SuppressLint("NewApi")
+public class CounterClass extends CountDownTimer {
+public CounterClass(long millisInFuture, long countDownInterval) {
+super(millisInFuture, countDownInterval);
+// TODO Auto-generated constructor stub
+}
+@Override
+public void onFinish() {
+times.setText("Time is up");
+Intent intent = new Intent(QuestionActivity.this,
+ResultActivity.class);
+Bundle b = new Bundle();
+b.putInt("score", score); // Your score
+intent.putExtras(b); // Put your score to your next
+startActivity(intent);
+finish();
+}
+@Override
+public void onTick(long millisUntilFinished) {
+// TODO Auto-generated method stub
+long millis = millisUntilFinished;
+String hms = String.format(
+"%02d:%02d:%02d",
+TimeUnit.MILLISECONDS.toHours(millis),
+TimeUnit.MILLISECONDS.toMinutes(millis)
+- TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS
+.toHours(millis)),
+TimeUnit.MILLISECONDS.toSeconds(millis)
+- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS
+.toMinutes(millis)));
+System.out.println(hms);
+times.setText(hms);
+}
+}
+private void setQuestionView() {
+// the method which will put all things together
+txtQuestion.setText(currentQ.getQUESTION());
+button1.setText(currentQ.getOPTA());
+button2.setText(currentQ.getOPTB());
+button3.setText(currentQ.getOPTC());
+qid++;
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QuestionActivity1.java:
+
+
+package h.mygame;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import java.util.List;
+
+/**
+* Created by acer on 06-Apr-16.
+*/
+public class QuestionActivity1 extends Activity {
+List<Question> quesList;
+int score = 0;
+int qid = 0;
+Question currentQ;
+TextView txtQuestion, times, scored;
+Button button1, button2, button3;
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.activity_main);
+QuizHelper db = new QuizHelper(this); // my question bank class
+quesList = db.getAllQuestions(); // this will fetch all quetonall questions
+currentQ = quesList.get(qid); // the current question
+txtQuestion = (TextView) findViewById(R.id.txtQuestion);
+times = (TextView) findViewById(R.id.timers);
+times.setText("");
+// the textview in which the question will be displayed
+// the three buttons,
+// the idea is to set the text of three buttons with the options from question bank
+button1 = (Button) findViewById(R.id.button1);
+button2 = (Button) findViewById(R.id.button2);
+button3 = (Button) findViewById(R.id.button3);
+// the textview in which score will be displayed
+scored = (TextView) findViewById(R.id.score);
+
+// method which will set the things up for our game
+setQuestionView();
+// button click listeners
+button1.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+// passing the button text to other method
+// to check whether the anser is correct or not
+// same for all three buttons
+getAnswer(button1.getText().toString());
+}
+});
+button2.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+getAnswer(button2.getText().toString());
+}
+});
+button3.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+getAnswer(button3.getText().toString());
+}
+});
+}
+public void getAnswer(String AnswerString) {
+if (currentQ.getANSWER().equals(AnswerString)) {
+// if conditions matches increase the int (score) by 1
+// and set the text of the score view
+score++;
+scored.setText("Score : " + score);
+} else {
+// if unlucky start activity and finish the game
+Intent intent = new Intent(QuestionActivity1.this,
+ResultActivity.class);
+// passing the int value
+Bundle b = new Bundle();
+b.putInt("score", score); // Your score
+intent.putExtras(b); // Put your score to your next
+startActivity(intent);
+finish();
+}
+if (qid < 20) {
+// if questions are not over then do this
+currentQ = quesList.get(qid);
+setQuestionView();
+} else {
+// if over do this
+Intent intent = new Intent(QuestionActivity1.this,
+ResultActivity.class);
+Bundle b = new Bundle();
+b.putInt("score", score); // Your score
+intent.putExtras(b); // Put your score to your next
+startActivity(intent);
+finish();
+}
+}
+
+private void setQuestionView() {
+// the method which will put all things together
+txtQuestion.setText(currentQ.getQUESTION());
+button1.setText(currentQ.getOPTA());
+button2.setText(currentQ.getOPTB());
+button3.setText(currentQ.getOPTC());
+qid++;
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QuizHelper.java:
+
+
+package h.mygame;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+* Created by acer on 06-Apr-16.
+*/
+public class QuizHelper extends SQLiteOpenHelper {
+private static final int DATABASE_VERSION = 1;
+// Database Name
+private static final String DATABASE_NAME = "mathsone";
+// tasks table name
+private static final String TABLE_QUEST = "quest";
+// tasks Table Columns names
+private static final String KEY_ID = "qid";
+private static final String KEY_QUES = "question";
+private static final String KEY_ANSWER = "answer"; // correct option
+private static final String KEY_OPTA = "opta"; // option a
+private static final String KEY_OPTB = "optb"; // option b
+private static final String KEY_OPTC = "optc"; // option c
+private SQLiteDatabase dbase;
+public QuizHelper(Context context) {
+super(context, DATABASE_NAME, null, DATABASE_VERSION);
+}
+@Override
+public void onCreate(SQLiteDatabase db) {
+dbase = db;
+String sql = "CREATE TABLE IF NOT EXISTS " + TABLE_QUEST + " ( "
++ KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + KEY_QUES
++ " TEXT, " + KEY_ANSWER + " TEXT, " + KEY_OPTA + " TEXT, "
++ KEY_OPTB + " TEXT, " + KEY_OPTC + " TEXT)";
+db.execSQL(sql);
+addQuestion();
+// db.close();
+}
+private void addQuestion() {
+Question q1 = new Question("5+2 = ?", "7", "8", "6", "7");
+this.addQuestion(q1);
+Question q2 = new Question("2+18 = ?", "18", "19", "20", "20");
+this.addQuestion(q2);
+Question q3 = new Question("10-3 = ?", "6", "7", "8", "7");
+this.addQuestion(q3);
+Question q4 = new Question("5+7 = ?", "12", "13", "14", "12");
+this.addQuestion(q4);
+Question q5 = new Question("3-1 = ?", "1", "3", "2", "2");
+this.addQuestion(q5);
+Question q6 = new Question("0+1 = ?", "1", "0", "10", "1");
+this.addQuestion(q6);
+Question q7 = new Question("9-9 = ?", "0", "9", "1", "0");
+this.addQuestion(q7);
+Question q8 = new Question("3+6 = ?", "8", "7", "9", "9");
+this.addQuestion(q8);
+Question q9 = new Question("1+5 = ?", "6", "7", "5", "6");
+this.addQuestion(q9);
+Question q10 = new Question("7-5 = ?", "3", "2", "6", "2");
+this.addQuestion(q10);
+Question q11 = new Question("7-2 = ?", "7", "6", "5", "5");
+this.addQuestion(q11);
+Question q12 = new Question("3+5 = ?", "8", "7", "5", "8");
+this.addQuestion(q12);
+Question q13 = new Question("0+6 = ?", "7", "6", "5", "6");
+this.addQuestion(q13);
+Question q14 = new Question("12-10 = ?", "1", "2", "3", "2");
+this.addQuestion(q14);
+Question q15 = new Question("12+2 = ?", "14", "15", "16", "14");
+this.addQuestion(q15);
+Question q16 = new Question("2-1 = ?", "2", "1", "0", "1");
+this.addQuestion(q16);
+Question q17 = new Question("6-6 = ?", "6", "12", "0", "0");
+this.addQuestion(q17);
+Question q18 = new Question("5-1 = ?", "4", "3", "2", "4");
+this.addQuestion(q18);
+Question q19 = new Question("4+2 = ?", "6", "7", "5", "6");
+this.addQuestion(q19);
+Question q20 = new Question("5+1 = ?", "6", "7", "5", "6");
+this.addQuestion(q20);
+Question q21 = new Question("5-4 = ?", "5", "4", "1", "1");
+this.addQuestion(q21);
+// END
+}
+@Override
+public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
+// Drop older table if existed
+db.execSQL("DROP TABLE IF EXISTS " + TABLE_QUEST);
+// Create tables again
+onCreate(db);
+}
+// Adding new question
+public void addQuestion(Question quest) {
+// SQLiteDatabase db = this.getWritableDatabase();
+ContentValues values = new ContentValues();
+values.put(KEY_QUES, quest.getQUESTION());
+values.put(KEY_ANSWER, quest.getANSWER());
+values.put(KEY_OPTA, quest.getOPTA());
+values.put(KEY_OPTB, quest.getOPTB());
+values.put(KEY_OPTC, quest.getOPTC());
+// Inserting Row
+dbase.insert(TABLE_QUEST, null, values);
+}
+public List<Question> getAllQuestions() {
+List<Question> quesList = new ArrayList<Question>();
+// Select All Query
+String selectQuery = "SELECT * FROM " + TABLE_QUEST;
+dbase = this.getReadableDatabase();
+Cursor cursor = dbase.rawQuery(selectQuery, null);
+// looping through all rows and adding to list
+if (cursor.moveToFirst()) {
+do {
+Question quest = new Question();
+quest.setID(cursor.getInt(0));
+quest.setQUESTION(cursor.getString(1));
+quest.setANSWER(cursor.getString(2));
+quest.setOPTA(cursor.getString(3));
+quest.setOPTB(cursor.getString(4));
+quest.setOPTC(cursor.getString(5));
+quesList.add(quest);
+} while (cursor.moveToNext());
+}
+// return quest list
+return quesList;
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question.java:
+
+
+package h.mygame;
+
+import android.app.Activity;
+
+/**
+* Created by acer on 06-Apr-16.
+*/
+public class Question extends Activity {
+private int ID;
+private String QUESTION;
+private String OPTA;
+private String OPTB;
+private String OPTC;
+private String ANSWER;
+public Question() {
+ID = 0;
+QUESTION = "";
+OPTA = "";
+OPTB = "";
+OPTC = "";
+ANSWER = "";
+}
+public Question(String qUESTION, String oPTA, String oPTB, String oPTC,
+String aNSWER) {
+QUESTION = qUESTION;
+OPTA = oPTA;
+OPTB = oPTB;
+OPTC = oPTC;
+ANSWER = aNSWER;
+}
+public int getID() {
+return ID;
+}
+public String getQUESTION() {
+return QUESTION;
+}
+public String getOPTA() {
+return OPTA;
+}
+public String getOPTB() {
+return OPTB;
+}
+public String getOPTC() {
+return OPTC;
+}
+public String getANSWER() {
+return ANSWER;
+}
+public void setID(int id) {
+ID = id;
+}
+public void setQUESTION(String qUESTION) {
+QUESTION = qUESTION;
+}
+public void setOPTA(String oPTA) {
+OPTA = oPTA;
+}
+public void setOPTB(String oPTB) {
+OPTB = oPTB;
+}
+public void setOPTC(String oPTC) {
+OPTC = oPTC;
+}
+public void setANSWER(String aNSWER) {
+ANSWER = aNSWER;
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Options.java:
+
+
+package h.mygame;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+
+/**
+* Created by acer on 06-Apr-16.
+*/
+public class Options extends Activity {
+
+Button btnhard,btnintermediate,btnsimple,btntime,btnuntime;
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.optionsmenu);
+
+btnhard = (Button) findViewById(R.id.btnhard);
+btnsimple = (Button) findViewById(R.id.btnsimple);
+btnintermediate = (Button) findViewById(R.id.btnintermediate);
+btntime = (Button) findViewById(R.id.btntime);
+btnuntime = (Button) findViewById(R.id.btnuntime);
+
+btntime.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+Intent intent = new Intent(Options.this,
+QuestionActivity.class);
+startActivity(intent);
+finish();
+}
+});
+btnuntime.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+Intent intent = new Intent(Options.this,
+QuestionActivity1.class);
+startActivity(intent);
+finish();
+}
+});
+btnhard.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+Intent intent = new Intent(Options.this,
+QuestionActivity.class);
+startActivity(intent);
+finish();
+}
+});
+
+btnsimple.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+//please implement your own logic
+}
+});
+
+btnintermediate.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+//please implement your own logic
+}
+});
+
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ResultActivity.java:
+
+
+package h.mygame;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+
+/**
+* Created by acer on 06-Apr-16.
+*/
+public class ResultActivity extends Activity {
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.activity_result);
+TextView textResult = (TextView) findViewById(R.id.textResult);
+Bundle b = getIntent().getExtras();
+int score = b.getInt("score");
+textResult.setText("Your score is " + " " + score + ". Thanks for playing my game.");
+}
+public void playagain(View o) {
+Intent intent = new Intent(this, Options.class);
+startActivity(intent);
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AndroidManifest.xml:
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+package="h.mygame">
+
+<application
+android:allowBackup="true"
+android:icon="@mipmap/ic_launcher"
+android:label="@string/app_name"
+android:supportsRtl="true"
+android:theme="@style/AppTheme">
+<activity
+android:name=".MainActivity"
+android:label="@string/app_name"
+android:screenOrientation="portrait">
+<intent-filter>
+<action android:name="android.intent.action.MAIN" />
+<category android:name="android.intent.category.LAUNCHER" />
+</intent-filter>
+</activity>
+<activity
+android:name=".QuestionActivity"
+android:label="@string/app_name"
+android:screenOrientation="portrait"/>
+<activity
+android:name=".QuestionActivity1"
+android:label="@string/app_name"
+android:screenOrientation="portrait"/>
+<activity
+android:name=".Options"
+android:label="@string/app_name"
+android:screenOrientation="portrait"/>
+<activity
+android:name=".ResultActivity"
+android:label="@string/app_name"
+android:screenOrientation="portrait"/>
+</application>
+</manifest>
